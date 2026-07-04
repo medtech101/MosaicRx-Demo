@@ -6,6 +6,7 @@ import PatientRail from './components/PatientRail';
 import EncounterView from './components/EncounterView';
 import AuditTrail from './components/AuditTrail';
 import InvestorView from './components/InvestorView';
+import LaunchGate from './components/LaunchGate';
 
 interface ResolvedAction {
   action: SuggestedAction;
@@ -23,6 +24,7 @@ const INITIAL_STATE = {
 };
 
 export default function App() {
+  const [authenticated, setAuthenticated] = useState(false);
   const [selectedId, setSelectedId] = useState(INITIAL_STATE.selectedId);
   const [mode, setMode] = useState<PointOfCareMode>(INITIAL_STATE.mode);
   const [view, setView] = useState<'clinical' | 'investor'>(INITIAL_STATE.view);
@@ -46,6 +48,11 @@ export default function App() {
     setChartOpenedIds((prev) => new Set(prev).add(patient.id));
   };
 
+  const handleSignOut = () => {
+    handleReset();
+    setAuthenticated(false);
+  };
+
   const handleResolveAction = (action: SuggestedAction, dismissReason?: string) => {
     const resolved: ResolvedAction = { action, noteText: action.noteTemplate, dismissReason };
     setResolvedActions((prev) => ({ ...prev, [resolvedKey]: resolved }));
@@ -62,9 +69,21 @@ export default function App() {
     setAuditLog((prev) => [...prev, entry]);
   };
 
+  if (!authenticated) {
+    return <LaunchGate onAuthenticated={() => setAuthenticated(true)} />;
+  }
+
   return (
     <div className="flex flex-col h-screen w-screen bg-slate-50 text-slate-800 font-sans overflow-hidden">
-      <TopBar mode={mode} onModeChange={setMode} view={view} onViewChange={setView} onReset={handleReset} />
+      <TopBar
+        mode={mode}
+        onModeChange={setMode}
+        view={view}
+        onViewChange={setView}
+        onReset={handleReset}
+        clinician={{ name: 'Dr. Alexis Reyes', role: 'Internal Medicine', initials: 'AR' }}
+        onSignOut={handleSignOut}
+      />
 
       <div className="flex-1 flex overflow-hidden">
         {view === 'clinical' && (

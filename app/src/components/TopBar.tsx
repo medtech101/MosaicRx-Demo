@@ -1,5 +1,11 @@
-import { CalendarClock, FileEdit, MonitorSmartphone, RotateCcw } from 'lucide-react';
+import { CalendarClock, FileEdit, LogOut, MonitorSmartphone, RotateCcw, ShieldCheck } from 'lucide-react';
 import { PointOfCareMode } from '../types';
+
+interface Clinician {
+  name: string;
+  role: string;
+  initials: string;
+}
 
 interface TopBarProps {
   mode: PointOfCareMode;
@@ -7,6 +13,8 @@ interface TopBarProps {
   view: 'clinical' | 'investor';
   onViewChange: (view: 'clinical' | 'investor') => void;
   onReset: () => void;
+  clinician: Clinician;
+  onSignOut: () => void;
 }
 
 const MODES: { id: PointOfCareMode; label: string; icon: typeof CalendarClock; description: string }[] = [
@@ -15,7 +23,7 @@ const MODES: { id: PointOfCareMode; label: string; icon: typeof CalendarClock; d
   { id: 'chart-open', label: 'Chart open, patient present', icon: MonitorSmartphone, description: 'During the encounter' },
 ];
 
-export default function TopBar({ mode, onModeChange, view, onViewChange, onReset }: TopBarProps) {
+export default function TopBar({ mode, onModeChange, view, onViewChange, onReset, clinician, onSignOut }: TopBarProps) {
   return (
     <div className="shrink-0 z-30">
       <div className="bg-amber-50 border-b border-amber-200 text-amber-900 text-[11px] font-semibold tracking-wide text-center py-1.5 px-4">
@@ -43,12 +51,34 @@ export default function TopBar({ mode, onModeChange, view, onViewChange, onReset
           ))}
         </div>
 
-        <button
-          onClick={onReset}
-          className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 hover:text-white border border-white/15 hover:border-white/30 rounded-lg px-3 py-1.5 cursor-pointer transition-all"
-        >
-          <RotateCcw className="h-3.5 w-3.5" /> Reset demo
-        </button>
+        <div className="flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg pl-1.5 pr-2.5 py-1">
+            <span className="w-6 h-6 rounded-full bg-mosaic-500 text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+              {clinician.initials}
+            </span>
+            <div className="leading-tight">
+              <p className="text-[11px] font-semibold text-white">{clinician.name}</p>
+              <p className="text-[9.5px] text-slate-400 flex items-center gap-0.5">
+                <ShieldCheck className="h-2.5 w-2.5 text-mosaic-300" /> SSO · {clinician.role}
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={onReset}
+            className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 hover:text-white border border-white/15 hover:border-white/30 rounded-lg px-3 py-1.5 cursor-pointer transition-all"
+          >
+            <RotateCcw className="h-3.5 w-3.5" /> Reset demo
+          </button>
+
+          <button
+            onClick={onSignOut}
+            title="Sign out and replay secure launch"
+            className="flex items-center justify-center text-slate-300 hover:text-white border border-white/15 hover:border-white/30 rounded-lg p-1.5 cursor-pointer transition-all"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </div>
 
       {view === 'clinical' && (
