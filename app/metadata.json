@@ -1,0 +1,6 @@
+{
+  "name": "MosaicRx",
+  "description": "Investor demo: reverse-causal, phenotype-conditioned clinical decision support for geriatric polypharmacy. Synthetic data, simulated reasoning, front-end only.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
