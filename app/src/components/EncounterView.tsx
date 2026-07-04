@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Patient, PointOfCareMode, SuggestedAction } from '../types';
 import { formatDate } from '../data/patients';
 import MosaicSignalCard from './MosaicSignalCard';
+import PhenotypeRiskPanel from './PhenotypeRiskPanel';
 import ActionPanel from './ActionPanel';
 import { AlertTriangle, FileEdit, FolderOpen, Pill, Send, Stethoscope } from 'lucide-react';
 
@@ -163,6 +164,9 @@ export default function EncounterView({ patient, mode, chartOpened, onOpenChart,
               ))}
             </div>
           </div>
+
+          {/* Phenotype risk: fall-risk stratification + predicted adverse events */}
+          <PhenotypeRiskPanel phenotypeRisk={patient.phenotypeRisk} />
 
           {/* e-Prescribe widget */}
           {mode === 'eprescribe' && (

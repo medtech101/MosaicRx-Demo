@@ -52,6 +52,44 @@ const maria: Patient = {
     onsetDate: '2026-06-04',
     onsetDescription: 'Onset approximately 3 weeks ago, gradually noticed by family.',
   },
+  phenotypeRisk: {
+    fallRisk: {
+      tier: 'high',
+      score: 78,
+      scaleMax: 100,
+      bandLabel: 'High fall risk',
+      factors: [
+        'Age 82 with mild cognitive impairment',
+        'Active strong anticholinergic (oxybutynin) plus a nightly sedative-hypnotic (zolpidem)',
+        'Two antihypertensives with orthostatic potential (amlodipine, lisinopril)',
+        'Current dizziness and intermittent confusion',
+      ],
+      instrumentNote: 'Illustrative composite modeled on STEADI-style fall risk factors. Not a validated score.',
+    },
+    predictedAdverseEvents: [
+      {
+        condition: 'Delirium or acute worsening of confusion',
+        likelihood: 'high',
+        timeframe: 'Next few weeks',
+        rationale:
+          'Cumulative anticholinergic load from oxybutynin opposes her donepezil, and CKD stage 3a slows metabolite clearance, so central effects can intensify.',
+      },
+      {
+        condition: 'Fall with fracture',
+        likelihood: 'high',
+        timeframe: 'Near term',
+        rationale:
+          'Dizziness at age 82 combined with sedative and antihypertensive exposure raises the chance of an injurious fall.',
+      },
+      {
+        condition: 'Drug accumulation from reduced renal clearance',
+        likelihood: 'moderate',
+        timeframe: 'Ongoing',
+        rationale:
+          'CKD stage 3a with polypharmacy allows renally cleared agents and active metabolites to build up over time.',
+      },
+    ],
+  },
   signal: {
     status: 'cascade-detected',
     headline: 'This new presentation may be medication-driven.',
@@ -173,6 +211,43 @@ const robert: Patient = {
     onsetDate: '2026-05-20',
     onsetDescription: 'Gradual fatigue over about 5 weeks, no clear trigger reported.',
   },
+  phenotypeRisk: {
+    fallRisk: {
+      tier: 'moderate',
+      score: 42,
+      scaleMax: 100,
+      bandLabel: 'Moderate fall risk',
+      factors: [
+        'Age 78',
+        'Alpha blocker (tamsulosin) with orthostatic potential',
+        'Polypharmacy across 8 active medications',
+        'Intact cognition, no sedatives or anticholinergics, normal renal function',
+      ],
+      instrumentNote: 'Illustrative composite modeled on STEADI-style fall risk factors. Not a validated score.',
+    },
+    predictedAdverseEvents: [
+      {
+        condition: 'Vitamin B12 deficiency',
+        likelihood: 'moderate',
+        timeframe: 'Next 6 to 12 months',
+        rationale:
+          'Long-term metformin and omeprazole both reduce B12 absorption. Worth checking as part of the current fatigue workup.',
+      },
+      {
+        condition: 'Orthostatic hypotension',
+        likelihood: 'moderate',
+        timeframe: 'Ongoing',
+        rationale: 'Tamsulosin can lower standing blood pressure, which is more consequential at age 78.',
+      },
+      {
+        condition: 'Chronic proton pump inhibitor effects',
+        likelihood: 'low',
+        timeframe: 'Long term',
+        rationale:
+          'Sustained omeprazole use is associated with low magnesium and reduced bone density over years.',
+      },
+    ],
+  },
   signal: {
     status: 'no-cascade',
     headline: 'No medication-driven cascade identified for this presentation.',
@@ -276,6 +351,43 @@ const eleanor: Patient = {
     text: 'New confusion and a recent fall',
     onsetDate: '2026-06-08',
     onsetDescription: 'Family reports new confusion and a fall at home approximately 2 weeks ago.',
+  },
+  phenotypeRisk: {
+    fallRisk: {
+      tier: 'high',
+      score: 84,
+      scaleMax: 100,
+      bandLabel: 'High fall risk',
+      factors: [
+        'Age 85 with a documented recent fall',
+        'Osteoporosis, which amplifies the severity of any fall',
+        'Self-reported OTC diphenhydramine, a sedating anticholinergic',
+        'Antihypertensive plus an SSRI',
+      ],
+      instrumentNote: 'Illustrative composite modeled on STEADI-style fall risk factors. Not a validated score.',
+    },
+    predictedAdverseEvents: [
+      {
+        condition: 'Fragility fracture of the hip or spine',
+        likelihood: 'high',
+        timeframe: 'Near term',
+        rationale:
+          'Osteoporosis combined with an elevated fall risk and a recent fall makes an injurious fracture a leading concern.',
+      },
+      {
+        condition: 'Recurrent falls with delirium',
+        likelihood: 'high',
+        timeframe: 'Near term',
+        rationale:
+          'A sedating anticholinergic taken nightly at age 85 sustains both the confusion and the instability behind the recent fall.',
+      },
+      {
+        condition: 'Orthostatic hypotension',
+        likelihood: 'moderate',
+        timeframe: 'Ongoing',
+        rationale: 'Antihypertensive therapy alongside anticholinergic autonomic effects can lower standing blood pressure.',
+      },
+    ],
   },
   signal: {
     status: 'cascade-detected',

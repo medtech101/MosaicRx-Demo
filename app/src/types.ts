@@ -82,6 +82,30 @@ export interface MosaicSignal {
   suggestedActions: SuggestedAction[];
 }
 
+export type RiskTier = 'low' | 'moderate' | 'high';
+
+export interface FallRisk {
+  tier: RiskTier;
+  score: number; // illustrative composite, 0 to scaleMax
+  scaleMax: number;
+  bandLabel: string;
+  factors: string[];
+  instrumentNote: string;
+}
+
+export interface PredictedAdverseEvent {
+  condition: string;
+  likelihood: RiskTier;
+  timeframe: string;
+  rationale: string;
+}
+
+export interface PhenotypeRisk {
+  fallRisk: FallRisk;
+  // Empty array renders the "none of concern in this scope" state.
+  predictedAdverseEvents: PredictedAdverseEvent[];
+}
+
 export interface Patient {
   id: string;
   name: string;
@@ -93,6 +117,7 @@ export interface Patient {
   medications: Medication[];
   labs: LabValue[];
   complaint: PresentingComplaint;
+  phenotypeRisk: PhenotypeRisk;
   signal: MosaicSignal;
 }
 
