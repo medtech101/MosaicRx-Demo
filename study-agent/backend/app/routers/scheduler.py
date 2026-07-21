@@ -10,7 +10,9 @@ from app.models import Week, ScheduleBlock
 from app.services.scheduler.week_detector import get_or_create_current_week, get_week_topics
 from app.services.scheduler.plan_generator import generate_schedule
 from app.services.scheduler.sm2 import get_or_create_review_state, apply_confidence_rating
-from app.services.scheduler.ics_export import export_week_ics
+from app.services.scheduler.ics_export import export_week_ics, scannable_ics_text
+from app.services.sanitize.blocklist import find_blocklist_matches
+from .settings import terms_by_category
 
 router = APIRouter(prefix="/api/scheduler", tags=["scheduler"])
 
@@ -87,4 +89,11 @@ def submit_confidence(block_id: int, payload: ConfidenceIn, db: Session = Depend
 
 @router.get("/export.ics", response_class=PlainTextResponse)
 def export_ics(week_id: int | None = None, db: Session = Depends(get_db)):
-    return export_week_ics(db, week_id)
+    ics_text = export_week_ics(db, week_id)
+    terms = terms_by_category(db)
+    matches = find_blocklist_matches(scannable_ics_text(ics_text), terms)
+    if matches:
+        raise HTTPException(
+            422, f"Final blocklist scan found an unresolved term in the calendar: '{matches[0].original}'."
+        )
+    return ics_text

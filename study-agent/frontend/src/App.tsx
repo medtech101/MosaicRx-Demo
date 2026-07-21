@@ -7,7 +7,7 @@ import { ReviewPage } from "./pages/ReviewPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { GraphPage } from "./pages/GraphPage";
 import { SchedulePage } from "./pages/SchedulePage";
-import { PlaceholderPage } from "./pages/PlaceholderPage";
+import { ExportPage } from "./pages/ExportPage";
 
 export default function App() {
   return (
@@ -25,15 +25,7 @@ export default function App() {
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/graph" element={<GraphPage />} />
           <Route path="/schedule" element={<SchedulePage />} />
-          <Route
-            path="/export"
-            element={
-              <PlaceholderPage
-                title="Export center"
-                note="Coming in Module 5: notes, graph, flashcards, and schedule export bundle."
-              />
-            }
-          />
+          <Route path="/export" element={<ExportPage />} />
         </Routes>
       </main>
     </div>

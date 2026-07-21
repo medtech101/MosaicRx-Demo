@@ -125,6 +125,22 @@ export const api = {
       body: JSON.stringify({ rating }),
     }),
   icsExportUrl: (weekId?: number) => `/api/scheduler/export.ics${weekId ? `?week_id=${weekId}` : ""}`,
+
+  exportUrl: (path: string) => `${BASE}/export${path}`,
+  downloadBundle: async () => {
+    const res = await fetch(`${BASE}/export/bundle.zip`);
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.detail || "Export failed");
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "study-agent-export.zip";
+    a.click();
+    URL.revokeObjectURL(url);
+  },
 };
 
 export interface WeekOut {

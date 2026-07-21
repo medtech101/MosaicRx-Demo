@@ -28,3 +28,15 @@ def export_week_ics(db: Session, week_id: int | None = None) -> str:
         query = query.filter(ScheduleBlock.week_id == week_id)
     blocks = query.all()
     return build_calendar(blocks).serialize()
+
+
+def scannable_ics_text(ics_text: str) -> str:
+    """Strips the ics library's own auto-generated fields (UID, DTSTAMP)
+    before a blocklist scan - a UID like 'a1b2c3@a1b2.org' is a synthetic
+    identifier the library invents for RFC 5545 uniqueness, not user
+    content, and its UUID-like shape can otherwise false-positive against
+    the scan's email-address pattern."""
+    return "\n".join(
+        line for line in ics_text.splitlines()
+        if not line.startswith("UID:") and not line.startswith("DTSTAMP:")
+    )
