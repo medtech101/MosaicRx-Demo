@@ -1,0 +1,216 @@
+const BASE = "/api";
+
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    headers: options.body instanceof FormData ? undefined : { "Content-Type": "application/json" },
+    ...options,
+  });
+  if (!res.ok) {
+    let detail = res.statusText;
+    try {
+      const body = await res.json();
+      detail = body.detail || JSON.stringify(body);
+    } catch {
+      /* ignore */
+    }
+    throw new Error(detail);
+  }
+  if (res.status === 204) return undefined as T;
+  return res.json();
+}
+
+export interface DocumentOut {
+  id: number;
+  original_filename: string;
+  doc_type: string;
+  status: string;
+  unit_count: number;
+  created_at: string;
+}
+
+export interface RedactionEntryOut {
+  id: number;
+  location: string;
+  category: string;
+  original_text: string;
+  replacement_text: string;
+  status: string;
+}
+
+export interface ImageFlagOut {
+  id: number;
+  location: string;
+  reason: string;
+  ocr_text: string | null;
+  matched_terms: string[] | null;
+  action: string;
+  thumbnail_path: string | null;
+}
+
+export interface DocumentReviewOut {
+  document: DocumentOut;
+  redactions: RedactionEntryOut[];
+  image_flags: ImageFlagOut[];
+  sanitized_markdown_preview: string;
+}
+
+export interface BlocklistTerm {
+  id: number;
+  term: string;
+  category: string;
+}
+
+export const api = {
+  uploadDocument: (file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+    return request<DocumentOut>("/documents/upload", { method: "POST", body: form });
+  },
+  listDocuments: () => request<DocumentOut[]>("/documents"),
+  getReview: (id: number) => request<DocumentReviewOut>(`/documents/${id}/review`),
+  confirmDocument: (
+    id: number,
+    redactionDecisions: { id: number; approve: boolean }[],
+    imageDecisions: { id: number; action: string }[]
+  ) =>
+    request(`/documents/${id}/confirm`, {
+      method: "POST",
+      body: JSON.stringify({ redaction_decisions: redactionDecisions, image_decisions: imageDecisions }),
+    }),
+  rejectDocument: (id: number) => request(`/documents/${id}/reject`, { method: "POST" }),
+  imageThumbnailUrl: (documentId: number, flagId: number) =>
+    `${BASE}/documents/${documentId}/image-flags/${flagId}/thumbnail`,
+
+  listBlocklist: () => request<BlocklistTerm[]>("/settings/blocklist"),
+  addBlocklistTerm: (term: string, category: string) =>
+    request<BlocklistTerm>("/settings/blocklist", { method: "POST", body: JSON.stringify({ term, category }) }),
+  deleteBlocklistTerm: (id: number) => request(`/settings/blocklist/${id}`, { method: "DELETE" }),
+
+  getAppSettings: () => request<Record<string, unknown>>("/settings/app"),
+  setAppSetting: (key: string, value: unknown) =>
+    request(`/settings/app/${key}`, { method: "PUT", body: JSON.stringify({ value }) }),
+
+  getGraph: () => request<GraphResponse>("/graph"),
+  recomputeGraph: () => request<{ ok: boolean }>("/graph/recompute", { method: "POST" }),
+  getConceptDetail: (id: number) => request<ConceptDetail>(`/graph/concepts/${id}`),
+
+  getResources: (conceptId: number) => request<ResourcesResponse>(`/resources/concepts/${conceptId}`),
+  getRankedResources: (conceptId: number) =>
+    request<ResourcesResponse>(`/resources/concepts/${conceptId}/ranked`),
+  refreshResources: (conceptId: number) =>
+    request<ResourcesResponse>(`/resources/concepts/${conceptId}/refresh`, { method: "POST" }),
+  rateResource: (resourceId: number, conceptId: number, helpful: boolean) =>
+    request(`/resources/ratings`, {
+      method: "POST",
+      body: JSON.stringify({ resource_id: resourceId, concept_id: conceptId, helpful }),
+    }),
+
+  getCommercialTemplates: () => request<Record<string, string>>("/resources/commercial-templates"),
+  setCommercialTemplate: (platform: string, urlTemplate: string) =>
+    request<Record<string, string>>(`/resources/commercial-templates/${platform}`, {
+      method: "PUT",
+      body: JSON.stringify({ url_template: urlTemplate }),
+    }),
+
+  getCurrentWeek: () => request<CurrentWeek>("/scheduler/weeks/current"),
+  getWeekBlocks: (weekId: number) => request<ScheduleBlockItem[]>(`/scheduler/weeks/${weekId}/blocks`),
+  generateSchedule: (weekId?: number) =>
+    request<{ week: WeekOut; blocks: ScheduleBlockItem[] }>(
+      `/scheduler/generate${weekId ? `?week_id=${weekId}` : ""}`,
+      { method: "POST" }
+    ),
+  submitConfidence: (blockId: number, rating: number) =>
+    request<ScheduleBlockItem>(`/scheduler/blocks/${blockId}/confidence`, {
+      method: "POST",
+      body: JSON.stringify({ rating }),
+    }),
+  icsExportUrl: (weekId?: number) => `/api/scheduler/export.ics${weekId ? `?week_id=${weekId}` : ""}`,
+
+  exportUrl: (path: string) => `${BASE}/export${path}`,
+  downloadBundle: async () => {
+    const res = await fetch(`${BASE}/export/bundle.zip`);
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.detail || "Export failed");
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "study-agent-export.zip";
+    a.click();
+    URL.revokeObjectURL(url);
+  },
+};
+
+export interface WeekOut {
+  id: number;
+  label: string;
+  start_date: string;
+  end_date: string;
+}
+
+export interface CurrentWeek extends WeekOut {
+  topics: { concept_id: number; name: string }[];
+}
+
+export interface ScheduleBlockItem {
+  id: number;
+  week_id: number;
+  concept_id: number | null;
+  day: string;
+  duration_minutes: number;
+  block_type: "new" | "review" | "taper";
+  status: "planned" | "completed" | "skipped";
+  confidence_rating: number | null;
+  label: string | null;
+}
+
+export interface ResourceItem {
+  id: number;
+  source: string;
+  title: string;
+  url: string;
+  summary: string | null;
+  helpful_count: number;
+  not_helpful_count: number;
+}
+
+export interface ResourcesResponse {
+  concept_id: number;
+  resources: ResourceItem[];
+}
+
+export interface GraphNode {
+  id: number;
+  name: string;
+  degree: number;
+  betweenness: number;
+  community: number | null;
+}
+
+export interface GraphEdge {
+  source: number;
+  target: number;
+  weight: number;
+}
+
+export interface BridgeConcept {
+  concept_id: number;
+  name: string;
+  betweenness: number;
+}
+
+export interface GraphResponse {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  bridge_concepts: BridgeConcept[];
+  community_labels: Record<string, string>;
+  computed_at: string;
+}
+
+export interface ConceptDetail {
+  concept: { id: number; canonical_name: string; aliases: string[] };
+  occurrences: { document_id: number; filename: string; location: string }[];
+  related_concepts: { id: number; name: string }[];
+}
