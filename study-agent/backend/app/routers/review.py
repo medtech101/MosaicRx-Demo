@@ -12,6 +12,8 @@ from app.schemas import DocumentReviewOut, ConfirmRequest
 from app.services.sanitize.blocklist import find_blocklist_matches
 from app.services.sanitize.image_scrub import strip_exif
 from app.services.sanitize.pipeline import build_markdown, SanitizedUnit
+from app.services.graphs.cooccurrence import ingest_concepts_for_document
+from app.services.graphs.analysis import compute_and_store_snapshot
 from .settings import terms_by_category
 
 router = APIRouter(prefix="/api/documents", tags=["review"])
@@ -137,6 +139,11 @@ def confirm_document(document_id: int, payload: ConfirmRequest, db: Session = De
     images_tmp_dir = Path(doc.upload_path).parent / f"doc_{document_id}_images" if doc.upload_path else None
     if images_tmp_dir and images_tmp_dir.exists():
         shutil.rmtree(images_tmp_dir, ignore_errors=True)
+
+    # Extract concepts and update the cumulative knowledge graph from the same
+    # final sanitized units used for the notes - never from raw/original text.
+    ingest_concepts_for_document(db, doc, rebuilt_units)
+    compute_and_store_snapshot(db, new_week_id=doc.week_id)
 
     db.query(DocumentUnit).filter(DocumentUnit.document_id == document_id).delete()
 
