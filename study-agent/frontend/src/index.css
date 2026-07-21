@@ -376,6 +376,58 @@ button {
   font-size: 0.8rem;
 }
 
+.resources-subhead {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 1rem 0 0.4rem;
+}
+
+.resource-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.resource-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.resource-row a {
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.resource-rate {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.resource-rate button {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.85rem;
+}
+
+.rate-active {
+  border-color: var(--ok) !important;
+  color: var(--ok) !important;
+}
+
+.rate-active-neg {
+  border-color: var(--danger) !important;
+  color: var(--danger) !important;
+}
+
 @media (max-width: 600px) {
   .app-header {
     padding: 0.5rem;

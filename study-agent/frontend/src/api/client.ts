@@ -93,7 +93,40 @@ export const api = {
   getGraph: () => request<GraphResponse>("/graph"),
   recomputeGraph: () => request<{ ok: boolean }>("/graph/recompute", { method: "POST" }),
   getConceptDetail: (id: number) => request<ConceptDetail>(`/graph/concepts/${id}`),
+
+  getResources: (conceptId: number) => request<ResourcesResponse>(`/resources/concepts/${conceptId}`),
+  getRankedResources: (conceptId: number) =>
+    request<ResourcesResponse>(`/resources/concepts/${conceptId}/ranked`),
+  refreshResources: (conceptId: number) =>
+    request<ResourcesResponse>(`/resources/concepts/${conceptId}/refresh`, { method: "POST" }),
+  rateResource: (resourceId: number, conceptId: number, helpful: boolean) =>
+    request(`/resources/ratings`, {
+      method: "POST",
+      body: JSON.stringify({ resource_id: resourceId, concept_id: conceptId, helpful }),
+    }),
+
+  getCommercialTemplates: () => request<Record<string, string>>("/resources/commercial-templates"),
+  setCommercialTemplate: (platform: string, urlTemplate: string) =>
+    request<Record<string, string>>(`/resources/commercial-templates/${platform}`, {
+      method: "PUT",
+      body: JSON.stringify({ url_template: urlTemplate }),
+    }),
 };
+
+export interface ResourceItem {
+  id: number;
+  source: string;
+  title: string;
+  url: string;
+  summary: string | null;
+  helpful_count: number;
+  not_helpful_count: number;
+}
+
+export interface ResourcesResponse {
+  concept_id: number;
+  resources: ResourceItem[];
+}
 
 export interface GraphNode {
   id: number;

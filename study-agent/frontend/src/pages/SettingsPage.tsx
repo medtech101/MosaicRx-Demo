@@ -3,12 +3,19 @@ import { api, BlocklistTerm } from "../api/client";
 
 const CATEGORIES = ["institution", "campus", "course_code", "person", "custom"];
 
+const PLATFORM_LABELS: Record<string, string> = {
+  amboss: "AMBOSS",
+  boards_and_beyond: "Boards and Beyond",
+  bootcamp: "Bootcamp",
+};
+
 export function SettingsPage() {
   const [terms, setTerms] = useState<BlocklistTerm[]>([]);
   const [newTerm, setNewTerm] = useState("");
   const [newCategory, setNewCategory] = useState("institution");
   const [examDate, setExamDate] = useState("");
   const [weeklyHours, setWeeklyHours] = useState<number>(10);
+  const [templates, setTemplates] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
 
   function refresh() {
@@ -20,6 +27,7 @@ export function SettingsPage() {
         if (typeof s.weekly_hours === "number") setWeeklyHours(s.weekly_hours);
       })
       .catch(() => {});
+    api.getCommercialTemplates().then(setTemplates).catch(() => {});
   }
 
   useEffect(refresh, []);
@@ -44,6 +52,13 @@ export function SettingsPage() {
   async function saveWeeklyHours(value: number) {
     setWeeklyHours(value);
     await api.setAppSetting("weekly_hours", value);
+  }
+
+  async function saveTemplate(platform: string, value: string) {
+    setTemplates((prev) => ({ ...prev, [platform]: value }));
+    if (value.includes("{query}")) {
+      await api.setCommercialTemplate(platform, value);
+    }
   }
 
   return (
@@ -104,6 +119,26 @@ export function SettingsPage() {
             />
           </label>
         </div>
+      </section>
+
+      <section>
+        <h2>Commercial resource links</h2>
+        <p className="muted">
+          These sites don't publish a public search API, so verify/edit the search URL pattern
+          against your own logged-in session. Must contain a <code>{"{query}"}</code> placeholder.
+        </p>
+        {Object.entries(templates).map(([platform, template]) => (
+          <div className="form-row" key={platform}>
+            <label style={{ flex: 1 }}>
+              {PLATFORM_LABELS[platform] || platform}
+              <input
+                value={template}
+                onChange={(e) => saveTemplate(platform, e.target.value)}
+                style={{ width: "100%" }}
+              />
+            </label>
+          </div>
+        ))}
       </section>
     </div>
   );

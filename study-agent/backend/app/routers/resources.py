@@ -57,11 +57,8 @@ def _ensure_commercial_resources(db: Session, concept: Concept) -> list[Resource
     return rows
 
 
-@router.get("/concepts/{concept_id}")
-def get_resources_for_concept(concept_id: int, db: Session = Depends(get_db)):
-    concept = _get_concept_or_404(concept_id, db)
-
-    cached = db.query(Resource).filter(Resource.concept_id == concept_id).all()
+def _ensure_resources_populated(db: Session, concept: Concept) -> None:
+    cached = db.query(Resource).filter(Resource.concept_id == concept.id).all()
     api_sourced_fetch_times = [r.fetched_at for r in cached if r.source in ("pubmed", "bookshelf")]
     has_open_sources = any(r.source in ("pubmed", "bookshelf", "openstax", "medlineplus") for r in cached)
     is_stale = not api_sourced_fetch_times or min(api_sourced_fetch_times) < dt.datetime.utcnow() - CACHE_TTL
@@ -71,6 +68,11 @@ def get_resources_for_concept(concept_id: int, db: Session = Depends(get_db)):
     if not any(r.source in ("amboss", "boards_and_beyond", "bootcamp") for r in cached):
         _ensure_commercial_resources(db, concept)
 
+
+@router.get("/concepts/{concept_id}")
+def get_resources_for_concept(concept_id: int, db: Session = Depends(get_db)):
+    concept = _get_concept_or_404(concept_id, db)
+    _ensure_resources_populated(db, concept)
     return _serialize_resources(db, concept_id)
 
 
@@ -86,6 +88,8 @@ def refresh_resources(concept_id: int, db: Session = Depends(get_db)):
 def get_ranked_resources(concept_id: int, db: Session = Depends(get_db)):
     """Prioritizes resources the user previously tagged as helpful, then
     unrated resources, then ones tagged not-helpful last."""
+    concept = _get_concept_or_404(concept_id, db)
+    _ensure_resources_populated(db, concept)
     return _serialize_resources(db, concept_id, ranked=True)
 
 

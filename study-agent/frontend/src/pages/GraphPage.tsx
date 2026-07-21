@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ForceGraph2D, { NodeObject, LinkObject } from "react-force-graph-2d";
 import { api, ConceptDetail, GraphResponse } from "../api/client";
+import { ResourcesPanel } from "../components/ResourcesPanel";
 
 const COMMUNITY_COLORS = [
   "#5b8cff", "#ff8a5b", "#35c46f", "#e35bff", "#ffcf6b",
@@ -137,6 +138,8 @@ export function GraphPage() {
             ))}
             {selected.related_concepts.length === 0 && <span className="muted">None yet.</span>}
           </div>
+
+          <ResourcesPanel conceptId={selected.concept.id} />
         </section>
       )}
     </div>
