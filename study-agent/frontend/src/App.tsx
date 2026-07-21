@@ -5,6 +5,7 @@ import { UploadPage } from "./pages/UploadPage";
 import { DocumentsPage } from "./pages/DocumentsPage";
 import { ReviewPage } from "./pages/ReviewPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { GraphPage } from "./pages/GraphPage";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
 
 export default function App() {
@@ -21,15 +22,7 @@ export default function App() {
           <Route path="/documents" element={<DocumentsPage />} />
           <Route path="/documents/:id/review" element={<ReviewPage />} />
           <Route path="/settings" element={<SettingsPage />} />
-          <Route
-            path="/graph"
-            element={
-              <PlaceholderPage
-                title="Knowledge graph"
-                note="Coming in Module 2: bridge concepts, clusters, and the force-directed concept graph."
-              />
-            }
-          />
+          <Route path="/graph" element={<GraphPage />} />
           <Route
             path="/schedule"
             element={

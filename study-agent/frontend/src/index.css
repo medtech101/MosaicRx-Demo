@@ -322,6 +322,60 @@ button {
   font-size: 0.8rem;
 }
 
+.bridge-list {
+  padding-left: 1.2rem;
+  margin: 0.5rem 0;
+}
+
+.bridge-list li {
+  margin-bottom: 0.35rem;
+  font-size: 0.9rem;
+}
+
+.bridge-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  font-size: 0.9rem;
+  text-decoration: underline;
+}
+
+.graph-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.graph-container {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+  background: var(--surface);
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.8rem;
+}
+
 @media (max-width: 600px) {
   .app-header {
     padding: 0.5rem;

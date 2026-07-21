@@ -89,4 +89,42 @@ export const api = {
   getAppSettings: () => request<Record<string, unknown>>("/settings/app"),
   setAppSetting: (key: string, value: unknown) =>
     request(`/settings/app/${key}`, { method: "PUT", body: JSON.stringify({ value }) }),
+
+  getGraph: () => request<GraphResponse>("/graph"),
+  recomputeGraph: () => request<{ ok: boolean }>("/graph/recompute", { method: "POST" }),
+  getConceptDetail: (id: number) => request<ConceptDetail>(`/graph/concepts/${id}`),
 };
+
+export interface GraphNode {
+  id: number;
+  name: string;
+  degree: number;
+  betweenness: number;
+  community: number | null;
+}
+
+export interface GraphEdge {
+  source: number;
+  target: number;
+  weight: number;
+}
+
+export interface BridgeConcept {
+  concept_id: number;
+  name: string;
+  betweenness: number;
+}
+
+export interface GraphResponse {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  bridge_concepts: BridgeConcept[];
+  community_labels: Record<string, string>;
+  computed_at: string;
+}
+
+export interface ConceptDetail {
+  concept: { id: number; canonical_name: string; aliases: string[] };
+  occurrences: { document_id: number; filename: string; location: string }[];
+  related_concepts: { id: number; name: string }[];
+}

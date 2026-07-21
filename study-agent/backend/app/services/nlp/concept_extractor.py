@@ -176,13 +176,21 @@ class ConceptExtractor:
 
         if self._mode == "fallback" and self._nlp is not None and self._matcher is not None:
             doc = self._nlp(text)
+            raw_matches = sorted(
+                ((doc[start:end].start_char, doc[start:end].end_char, doc[start:end].text)
+                 for _, start, end in self._matcher(doc)),
+                key=lambda t: (t[0], -(t[1] - t[0])),
+            )
             spans: list[ConceptSpan] = []
             seen_spans: set[tuple[int, int]] = set()
-            for _, start, end in self._matcher(doc):
-                span = doc[start:end]
-                spans.append(ConceptSpan(text=span.text, canonical=canonicalize(span.text),
-                                          start=span.start_char, end=span.end_char))
-                seen_spans.add((span.start_char, span.end_char))
+            last_end = -1
+            for start_char, end_char, span_text in raw_matches:
+                if start_char < last_end:
+                    continue  # overlaps a longer match already kept (e.g. "renin" inside "renin-angiotensin system")
+                spans.append(ConceptSpan(text=span_text, canonical=canonicalize(span_text),
+                                          start=start_char, end=end_char))
+                seen_spans.add((start_char, end_char))
+                last_end = end_char
             for m in CAPITALIZED_PHRASE_RE.finditer(text):
                 if any(s <= m.start() < e for s, e in seen_spans):
                     continue
