@@ -1,3 +1,4 @@
+import mimetypes
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
@@ -17,6 +18,11 @@ from app.routers import (
 # anywhere that runs Python - no separate frontend server needed. In dev you
 # instead run `npm run dev` (Vite) which proxies /api here.
 FRONTEND_DIST = BASE_DIR.parent / "frontend" / "dist"
+
+# Ensure correct content types for the PWA files on hosts whose mimetypes DB
+# lacks them (otherwise browsers reject the manifest / service worker).
+mimetypes.add_type("application/manifest+json", ".webmanifest")
+mimetypes.add_type("text/javascript", ".js")
 
 # import all models so create_all sees the full schema
 from app import models  # noqa: F401

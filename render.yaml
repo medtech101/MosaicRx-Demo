@@ -2,9 +2,6 @@
 # This lets the "Deploy to Render" button in study-agent/README.md stand up a
 # live instance of the FULL app - it builds the Docker image in study-agent/,
 # which serves the React UI and the FastAPI API together on one URL.
-#
-# Note: the MosaicRx investor demo (repo root index.html) is unrelated and is
-# not affected by this file - Render only reads it when you deploy.
 services:
   - type: web
     name: study-agent
