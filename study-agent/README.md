@@ -35,29 +35,63 @@ a repo, not the same product.
    Every artifact is re-scanned against the blocklist immediately before
    download.
 
-## Running locally
+## Launching (one command)
+
+The backend serves the built React app itself, so the whole thing runs as a
+single server on a single URL - no separate frontend process, nothing to
+deploy in two pieces.
 
 ```bash
-cd backend
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env   # fill in LLM_API_KEY etc. if you have them
-uvicorn app.main:app --reload
-
-# in another terminal
-cd frontend
-npm install
-npm run dev
+cd study-agent
+./run.sh
 ```
 
-Open the frontend dev server URL (printed by `npm run dev`, default
-`http://localhost:5173`).
+That builds the frontend, installs the backend, best-effort downloads the NLP
+models, and starts the server on `http://0.0.0.0:8000`.
 
-## Deploying on Replit
+- On this machine: open **http://localhost:8000**
+- **On your phone** (same Wi-Fi): open **http://<this-machine's-LAN-IP>:8000**
+  (e.g. `http://192.168.1.42:8000`). The UI is mobile-first, so this is the
+  intended way to use it between classes.
 
-Set every secret below under the Secrets tool instead of a `.env` file -
-Replit injects them as environment variables automatically:
+Useful overrides: `PORT=9000 ./run.sh`, `SKIP_BUILD=1 ./run.sh` (reuse an
+existing build for fast restarts), `SKIP_MODELS=1 ./run.sh`.
+
+## Launching with Docker
+
+Deploys to any container host (Render, Railway, Fly.io, a VPS, ...):
+
+```bash
+cd study-agent
+docker build -t study-agent .
+docker run -p 8000:8000 \
+  -e LLM_API_KEY=sk-... \
+  -v "$(pwd)/data:/app/backend/data" \
+  study-agent
+```
+
+The `-v` mount keeps your SQLite database and sanitized notes on the host so
+they survive container restarts. Open `http://localhost:8000`.
+
+## Dev mode (two servers, hot reload)
+
+For working on the frontend with hot-reload, run the two servers separately -
+Vite proxies `/api` to the backend:
+
+```bash
+cd backend && python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env            # fill in LLM_API_KEY etc. if you have them
+uvicorn app.main:app --reload   # API on :8000
+
+# in another terminal
+cd frontend && npm install && npm run dev   # UI on :5173
+```
+
+## Secrets
+
+Provide these as environment variables (a `.env` file in `backend/` locally,
+`-e` flags or your host's secret manager in Docker). Never commit real keys.
 
 | Secret | Required? | Purpose |
 |---|---|---|
@@ -65,25 +99,26 @@ Replit injects them as environment variables automatically:
 | `NCBI_EMAIL` / `NCBI_API_KEY` | optional | Raises the PubMed/Bookshelf lookup rate limit. Works anonymously without it. |
 | `AMBOSS_API_KEY` / `BNB_API_KEY` / `BOOTCAMP_API_KEY` | optional | None of these platforms currently publish a public API - these are stubbed for if/when one exists. Link-only mode works without them. |
 
-### One-time model download (do this on Replit, not in a restricted sandbox)
+## NLP models (automatic, with a fallback)
 
-This app was built and tested in a sandboxed environment whose network
-policy blocks GitHub-release, HuggingFace, and S3 downloads - exactly where
-spaCy and scispaCy host their pretrained models. Everything was built
-against that constraint with graceful, clearly-logged fallbacks (a coarse
-regex/heuristic matcher instead of real NER), so the app **runs** without
-the models - but de-identification and concept extraction are meaningfully
-better with them. Wherever you actually deploy this (Replit has normal
-internet access), run once:
+`run.sh` and the Dockerfile both try to download the spaCy and scispaCy
+models automatically, so on a normal internet connection you don't have to do
+anything. This app was originally built in a sandbox whose network policy
+blocks GitHub-release / HuggingFace / S3 downloads (where those models are
+hosted), so it's designed to **run either way**: without the models it falls
+back to a coarser regex/heuristic matcher for name detection and concept
+extraction, and logs a loud warning saying so. De-identification and concept
+extraction are meaningfully better with the real models, but nothing breaks
+without them.
+
+To install them by hand into an existing environment:
 
 ```bash
 python -m spacy download en_core_web_sm
 pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_core_sci_md-0.5.4.tar.gz
 ```
 
-Until you do, the app logs a loud warning identifying which fallback is
-active - check `uvicorn`'s startup/request logs if you want to confirm
-which mode you're running in.
+Check `uvicorn`'s startup/request logs to confirm which mode is active.
 
 ## Tests
 
