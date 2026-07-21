@@ -14,6 +14,8 @@ from app.services.sanitize.image_scrub import strip_exif
 from app.services.sanitize.pipeline import build_markdown, SanitizedUnit
 from app.services.graphs.cooccurrence import ingest_concepts_for_document
 from app.services.graphs.analysis import compute_and_store_snapshot
+from app.services.scheduler.week_detector import assign_document_to_current_week
+from app.services.scheduler.plan_generator import generate_schedule
 from .settings import terms_by_category
 
 router = APIRouter(prefix="/api/documents", tags=["review"])
@@ -140,10 +142,18 @@ def confirm_document(document_id: int, payload: ConfirmRequest, db: Session = De
     if images_tmp_dir and images_tmp_dir.exists():
         shutil.rmtree(images_tmp_dir, ignore_errors=True)
 
+    # Infer which week this lecture belongs to before extracting concepts, so
+    # the occurrences are stamped with the right week for the scheduler.
+    week = assign_document_to_current_week(db, doc)
+
     # Extract concepts and update the cumulative knowledge graph from the same
     # final sanitized units used for the notes - never from raw/original text.
     ingest_concepts_for_document(db, doc, rebuilt_units)
     compute_and_store_snapshot(db, new_week_id=doc.week_id)
+
+    # Reactive rescheduling: this upload may change what's due/new this week -
+    # regenerate the remaining days without touching already-completed blocks.
+    generate_schedule(db, week)
 
     db.query(DocumentUnit).filter(DocumentUnit.document_id == document_id).delete()
 
