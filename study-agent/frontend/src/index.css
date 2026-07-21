@@ -428,6 +428,48 @@ button {
   color: var(--danger) !important;
 }
 
+.schedule-day {
+  margin-bottom: 1.2rem;
+}
+
+.schedule-day h3 {
+  font-size: 0.95rem;
+  color: var(--muted);
+  margin-bottom: 0.4rem;
+}
+
+.schedule-block {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.schedule-block.block-review {
+  border-left-color: var(--ok);
+}
+
+.schedule-block.block-taper {
+  border-left-color: #ffcf6b;
+}
+
+.confidence-row {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.confidence-row button {
+  padding: 0.3rem 0.6rem;
+}
+
 @media (max-width: 600px) {
   .app-header {
     padding: 0.5rem;

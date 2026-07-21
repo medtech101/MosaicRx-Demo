@@ -62,12 +62,16 @@ def generate_schedule(db: Session, week: Week) -> list[ScheduleBlock]:
     ).delete()
 
     remaining_days = _remaining_days(week)
-    new_topics = get_week_topics(db, week.id)
-    new_concept_ids = {t["concept_id"] for t in new_topics}
+
+    # A concept only counts as "new material" until its first confidence
+    # rating creates a ConceptReviewState - after that it's tracked purely by
+    # its SM-2 due date, so it doesn't keep reappearing as "new" forever.
+    already_reviewed_ids = {cid for (cid,) in db.query(ConceptReviewState.concept_id).all()}
+    new_topics = [t for t in get_week_topics(db, week.id) if t["concept_id"] not in already_reviewed_ids]
 
     due_states = (
         db.query(ConceptReviewState)
-        .filter(ConceptReviewState.due_date <= week.end_date, ~ConceptReviewState.concept_id.in_(new_concept_ids or [0]))
+        .filter(ConceptReviewState.due_date <= week.end_date)
         .order_by(ConceptReviewState.due_date)
         .all()
     )
@@ -107,7 +111,12 @@ def generate_schedule(db: Session, week: Week) -> list[ScheduleBlock]:
             used_minutes += duration
     else:
         used_minutes = 0
-        front_load_days = remaining_days[:2] if len(remaining_days) >= 2 else remaining_days
+        # Front-load new material onto the earliest days, but spread it across
+        # enough of them that a heavy upload doesn't get crammed into day one -
+        # cap each front-load day at ~90 min of brand-new material.
+        new_total_minutes = min(len(new_topics) * 30, budget_minutes)
+        needed_days = max(2, -(-new_total_minutes // 90))  # ceil division
+        front_load_days = remaining_days[:min(needed_days, len(remaining_days))]
         for i, topic in enumerate(new_topics):
             duration = 30
             if used_minutes + duration > budget_minutes:

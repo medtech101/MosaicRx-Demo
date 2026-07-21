@@ -6,6 +6,7 @@ import { DocumentsPage } from "./pages/DocumentsPage";
 import { ReviewPage } from "./pages/ReviewPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { GraphPage } from "./pages/GraphPage";
+import { SchedulePage } from "./pages/SchedulePage";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
 
 export default function App() {
@@ -23,15 +24,7 @@ export default function App() {
           <Route path="/documents/:id/review" element={<ReviewPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/graph" element={<GraphPage />} />
-          <Route
-            path="/schedule"
-            element={
-              <PlaceholderPage
-                title="Study schedule"
-                note="Coming in Module 4: spaced-repetition weekly plan and ICS export."
-              />
-            }
-          />
+          <Route path="/schedule" element={<SchedulePage />} />
           <Route
             path="/export"
             element={

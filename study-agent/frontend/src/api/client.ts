@@ -111,7 +111,44 @@ export const api = {
       method: "PUT",
       body: JSON.stringify({ url_template: urlTemplate }),
     }),
+
+  getCurrentWeek: () => request<CurrentWeek>("/scheduler/weeks/current"),
+  getWeekBlocks: (weekId: number) => request<ScheduleBlockItem[]>(`/scheduler/weeks/${weekId}/blocks`),
+  generateSchedule: (weekId?: number) =>
+    request<{ week: WeekOut; blocks: ScheduleBlockItem[] }>(
+      `/scheduler/generate${weekId ? `?week_id=${weekId}` : ""}`,
+      { method: "POST" }
+    ),
+  submitConfidence: (blockId: number, rating: number) =>
+    request<ScheduleBlockItem>(`/scheduler/blocks/${blockId}/confidence`, {
+      method: "POST",
+      body: JSON.stringify({ rating }),
+    }),
+  icsExportUrl: (weekId?: number) => `/api/scheduler/export.ics${weekId ? `?week_id=${weekId}` : ""}`,
 };
+
+export interface WeekOut {
+  id: number;
+  label: string;
+  start_date: string;
+  end_date: string;
+}
+
+export interface CurrentWeek extends WeekOut {
+  topics: { concept_id: number; name: string }[];
+}
+
+export interface ScheduleBlockItem {
+  id: number;
+  week_id: number;
+  concept_id: number | null;
+  day: string;
+  duration_minutes: number;
+  block_type: "new" | "review" | "taper";
+  status: "planned" | "completed" | "skipped";
+  confidence_rating: number | null;
+  label: string | null;
+}
 
 export interface ResourceItem {
   id: number;
