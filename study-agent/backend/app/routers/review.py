@@ -2,6 +2,7 @@ import shutil
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.config import SANITIZED_DIR
@@ -39,6 +40,19 @@ def get_review(document_id: int, db: Session = Depends(get_db)):
         image_flags=image_flags,
         sanitized_markdown_preview=preview[:4000],
     )
+
+
+@router.get("/{document_id}/image-flags/{flag_id}/thumbnail")
+def get_image_thumbnail(document_id: int, flag_id: int, db: Session = Depends(get_db)):
+    """Serves a flagged image so the review screen can show it before the
+    user decides to remove or keep it. Never exposed outside this local API -
+    there is no public/share route anywhere in this app."""
+    flag = db.get(ImageFlag, flag_id)
+    if not flag or flag.document_id != document_id:
+        raise HTTPException(404, "Image flag not found")
+    if not flag.thumbnail_path or not Path(flag.thumbnail_path).exists():
+        raise HTTPException(404, "Thumbnail no longer available")
+    return FileResponse(flag.thumbnail_path)
 
 
 def _rebuild_units(document_id: int, db: Session, decisions: dict[int, bool]) -> list[SanitizedUnit]:
