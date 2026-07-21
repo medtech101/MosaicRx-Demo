@@ -11,6 +11,25 @@ This lives alongside the unrelated MosaicRx investor demo already in this
 repo (`../app`, `../index.html`) - the two are independent projects sharing
 a repo, not the same product.
 
+## Launch it live (one click)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/medtech101/MosaicRx-Demo)
+
+This is a real full-stack app (FastAPI + SQLite + Python NLP), so it can't run
+on GitHub Pages - Pages only serves static files. The button above deploys the
+**whole** app to a free [Render](https://render.com) web service in ~2 minutes
+using the blueprint at the repo root (`render.yaml`). When the deploy flow
+asks, pick the branch that contains `study-agent/` (or merge it to `main`
+first); every secret it prompts for is optional. You'll get a live
+`https://study-agent-*.onrender.com` URL that works on your phone.
+
+> Free-tier caveats: the instance sleeps after ~15 min idle (first hit after
+> that is slow to wake), and free services have no persistent disk, so your
+> SQLite data resets on restart. Attach a paid disk mounted at
+> `/app/backend/data` for durable storage.
+
+Prefer to run it yourself instead? See **Launching** below - it's one command.
+
 ## Modules
 
 1. **Ingestion & de-identification** (`backend/app/services/sanitize`) -

@@ -1,0 +1,33 @@
+# Render Blueprint for the Personal Study Agent (study-agent/).
+# This lets the "Deploy to Render" button in study-agent/README.md stand up a
+# live instance of the FULL app - it builds the Docker image in study-agent/,
+# which serves the React UI and the FastAPI API together on one URL.
+#
+# Note: the MosaicRx investor demo (repo root index.html) is unrelated and is
+# not affected by this file - Render only reads it when you deploy.
+services:
+  - type: web
+    name: study-agent
+    runtime: docker
+    dockerfilePath: ./study-agent/Dockerfile
+    dockerContext: ./study-agent
+    plan: free
+    autoDeploy: false
+    envVars:
+      # Secrets - you fill these in during the Render deploy flow. All optional:
+      # the app runs without any of them (flashcards fall back to a template,
+      # PubMed works anonymously). Never commit real values here.
+      - key: LLM_API_KEY
+        sync: false
+      - key: LLM_MODEL
+        value: claude-sonnet-5
+      - key: NCBI_EMAIL
+        sync: false
+      - key: NCBI_API_KEY
+        sync: false
+      # Auto-generated per deploy; used for app-internal signing only.
+      - key: APP_SECRET
+        generateValue: true
+# Free-tier note: Render's free plan has no persistent disk, so the SQLite
+# database resets whenever the service restarts. For durable storage, upgrade
+# the service and attach a disk mounted at /app/backend/data.
