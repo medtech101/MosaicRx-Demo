@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.database import engine, Base
-from app.routers import ingestion, review, settings as settings_router, graph as graph_router
+from app.routers import ingestion, review, settings as settings_router, graph as graph_router, resources as resources_router
 
 # import all models so create_all sees the full schema
 from app import models  # noqa: F401
@@ -34,6 +34,7 @@ app.include_router(ingestion.router)
 app.include_router(review.router)
 app.include_router(settings_router.router)
 app.include_router(graph_router.router)
+app.include_router(resources_router.router)
 
 
 @app.get("/api/health")
